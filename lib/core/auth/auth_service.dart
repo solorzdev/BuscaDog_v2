@@ -33,7 +33,7 @@ class AuthService {
     return AuthResult(token, user);
   }
 
-  /// --- REGISTRO (opcional) ---
+  // lib/core/auth/auth_service.dart (ya definido)
   static Future<AuthResult> register(
     String correo,
     String contrasena,
@@ -48,14 +48,13 @@ class AuthService {
         'nombre_mostrar': nombre,
       }),
     );
-
     final data = jsonDecode(resp.body);
     if (resp.statusCode != 201) {
       throw Exception(data['error'] ?? 'Error al registrar');
     }
-
-    final token = data['access_token'] as String;
-    final user = AuthUser.fromMap(data['user']);
-    return AuthResult(token, user);
+    return AuthResult(
+      data['access_token'] as String,
+      AuthUser.fromMap(data['user']),
+    );
   }
 }

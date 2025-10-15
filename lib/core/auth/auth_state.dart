@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthUser {
-  final int id;
+  final String id;
   final String email;
   final String? name;
   const AuthUser({required this.id, required this.email, this.name});
 
   factory AuthUser.fromMap(Map<String, dynamic> m) => AuthUser(
-    id: m['id'] as int,
+    id: m['id'].toString(),
     email: m['correo'] as String,
     name: (m['nombre_mostrar'] as String?),
   );

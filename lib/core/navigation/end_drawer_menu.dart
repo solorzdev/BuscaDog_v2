@@ -66,31 +66,6 @@ class AppEndDrawer extends StatelessWidget {
                   ],
                 ),
               ),
-              const Divider(color: Color(0x22FFFFFF), height: 24),
-
-              // Navegación (los mismos ítems que el bottom nav filtrado)
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  itemCount: items.length,
-                  itemBuilder: (context, i) {
-                    final it = items[i];
-                    final selected = i == currentIndex;
-                    return ListTile(
-                      leading: Icon(
-                        selected ? (it.activeIcon ?? it.icon) : it.icon,
-                      ),
-                      title: Text(it.label),
-                      selected: selected,
-                      selectedTileColor: Colors.white12,
-                      onTap: () {
-                        Navigator.of(context).maybePop();
-                        onSelect(i);
-                      },
-                    );
-                  },
-                ),
-              ),
 
               const Divider(color: Color(0x22FFFFFF), height: 24),
 
