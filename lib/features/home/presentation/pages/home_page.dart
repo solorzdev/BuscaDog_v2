@@ -35,16 +35,6 @@ class HomePage extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('Tip'),
-            subtitle: const Text(
-              'Mantén presionados los iconos del menú para accesos rápidos.',
-            ),
-          ),
-        ),
       ],
     );
   }
