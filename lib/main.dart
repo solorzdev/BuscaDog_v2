@@ -17,8 +17,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Buscadog',
-      theme: AppTheme.light, // Tema centralizado
-      home: const MainScaffold(), // Shell con BottomNav + IndexedStack
+      theme: AppTheme.light,
+      home: const MainScaffold(),
     );
   }
 }
