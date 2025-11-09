@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
@@ -14,20 +15,50 @@ class Vet {
   final double lat;
   final double lng;
 
+  // Campos extra
+  final String? telefono;
+  final String? correo;
+  final String? municipio;
+  final String? localidad;
+  final String? codigoPostal;
+  final String? via; // calle + número
+  final String? colonia; // tipo_asent + nomb_asent
+  final String? direccion; // dirección completa
+
   Vet({
     required this.id,
     required this.nombre,
     required this.lat,
     required this.lng,
+    this.telefono,
+    this.correo,
+    this.municipio,
+    this.localidad,
+    this.codigoPostal,
+    this.via,
+    this.colonia,
+    this.direccion,
   });
 
-  /// Detalle: tu endpoint devuelve { id, nombre, latitud, longitud, ... }
   factory Vet.fromJson(Map<String, dynamic> j) => Vet(
     id: j['id'] is int ? j['id'] : int.parse('${j['id']}'),
     nombre: (j['nombre'] ?? 'Veterinaria').toString(),
     lat: (j['latitud'] as num).toDouble(),
     lng: (j['longitud'] as num).toDouble(),
+    telefono: _s(j['telefono']),
+    correo: _s(j['correo']),
+    municipio: _s(j['municipio']),
+    localidad: _s(j['localidad']),
+    codigoPostal: _s(j['codigo_postal']),
+    via: _s(j['via']),
+    colonia: _s(j['colonia']),
+    direccion: _s(j['direccion']),
   );
+
+  static String? _s(dynamic v) {
+    final s = (v ?? '').toString().trim();
+    return s.isEmpty ? null : s;
+  }
 }
 
 class AggPoint {
@@ -36,7 +67,6 @@ class AggPoint {
   final int count;
   AggPoint({required this.lat, required this.lng, required this.count});
 
-  /// Agregados: tu endpoint devuelve { lat, lng, count }
   factory AggPoint.fromJson(Map<String, dynamic> j) => AggPoint(
     lat: (j['lat'] as num).toDouble(),
     lng: (j['lng'] as num).toDouble(),
@@ -57,8 +87,9 @@ class _SearchPageState extends State<SearchPage> {
   // Mapa
   final MapController _mapController = MapController();
   final List<Marker> _markers = [];
+  final Map<int, OverlayEntry> _hoverEntries = {};
 
-  // HTTP (Android emulador → 10.0.2.2)
+  // HTTP (Android emulador → 10.0.2.2; físico → IP de tu PC)
   final Dio _dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:8080/api/v1'));
   CancelToken? _cancel;
   int _reqSeq = 0;
@@ -91,7 +122,6 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> _loadPoisForView() async {
     final int seq = ++_reqSeq;
 
-    // Cancela request anterior
     _cancel?.cancel('newer request');
     _cancel = CancelToken();
 
@@ -229,14 +259,9 @@ class _SearchPageState extends State<SearchPage> {
             maxZoom: 19,
           ),
 
-          // -------- PRUEBA RÁPIDA SIN CLUSTER (descomenta para test) --------
-          // MarkerLayer(markers: _markers),
-
           // -------- CLUSTER VISUAL --------
           MarkerClusterLayerWidget(
-            key: ValueKey(
-              'cluster-${_reqSeq}-${_markers.length}',
-            ), // 👈 fuerza rebuild
+            key: ValueKey('cluster-${_reqSeq}-${_markers.length}'),
             options: MarkerClusterLayerOptions(
               markers: _markers,
               maxClusterRadius: 60,
@@ -246,10 +271,7 @@ class _SearchPageState extends State<SearchPage> {
                 return Container(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF00796B),
-                        Color(0xFF48A999),
-                      ], // tonos teal con degradado
+                      colors: [Color(0xFF00796B), Color(0xFF48A999)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -312,44 +334,179 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _vetPin(Vet v) {
-    return GestureDetector(
-      onTap: () {
-        debugPrint('Veterinaria tocada: ${v.nombre}');
-        showModalBottomSheet(
-          context: context,
-          builder: (_) => ListTile(
-            title: Text(
-              v.nombre,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+    return MouseRegion(
+      onEnter: kIsWeb ? (_) => _showHoverInfoWeb(v) : null,
+      onExit: kIsWeb ? (_) => _hideHoverInfoWeb(v) : null,
+      child: GestureDetector(
+        onTap: kIsWeb ? null : () => _showBottomCardMobile(v),
+        child: Container(
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [Color(0xFF009688), Color(0xFF4DB6AC)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
-            subtitle: Text(
-              'Lat: ${v.lat.toStringAsFixed(5)},  Lng: ${v.lng.toStringAsFixed(5)}',
-            ),
-            trailing: const Icon(Icons.local_hospital, color: Colors.teal),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-        );
-      },
-      child: Container(
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF009688),
-              Color(0xFF4DB6AC),
-            ], // tonos teal con brillo
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+          padding: const EdgeInsets.all(6),
+          child: const Icon(
+            Icons.local_hospital,
+            color: Colors.white,
+            size: 20,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 6,
-              offset: Offset(0, 2),
+        ),
+      ),
+    );
+  }
+
+  // ======================
+  // Mini-modal móvil y tooltip web
+  // ======================
+  void _showBottomCardMobile(Vet v) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                const CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Color(0xFFE0F2F1),
+                  child: Icon(Icons.local_hospital, color: Color(0xFF00796B)),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    v.nombre,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.share_outlined),
+                  onPressed: () {},
+                ),
+              ],
             ),
+            const SizedBox(height: 8),
+            if (v.direccion != null)
+              _infoRow(Icons.place_outlined, v.direccion!),
+            if (v.via != null || v.colonia != null)
+              _infoRow(
+                Icons.map_outlined,
+                [
+                  if (v.via != null) v.via!,
+                  if (v.colonia != null) v.colonia!,
+                ].join(' • '),
+              ),
+            if (v.telefono != null) _infoRow(Icons.call_outlined, v.telefono!),
+            if (v.correo != null) _infoRow(Icons.mail_outlined, v.correo!),
+            if (v.municipio != null ||
+                v.localidad != null ||
+                v.codigoPostal != null)
+              _infoRow(
+                Icons.location_city_outlined,
+                [
+                  if (v.localidad != null) v.localidad!,
+                  if (v.municipio != null) v.municipio!,
+                  if (v.codigoPostal != null) 'CP ${v.codigoPostal!}',
+                ].join(' • '),
+              ),
+            const SizedBox(height: 8),
+            Text(
+              'Lat: ${v.lat.toStringAsFixed(5)} · Lng: ${v.lng.toStringAsFixed(5)}',
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
+            ),
+            const SizedBox(height: 6),
           ],
         ),
-        padding: const EdgeInsets.all(6),
-        child: const Icon(Icons.local_hospital, color: Colors.white, size: 20),
+      ),
+    );
+  }
+
+  void _showHoverInfoWeb(Vet v) {
+    if (_hoverEntries.containsKey(v.id)) return;
+
+    final entry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 90, // sobre la barra inferior
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 380),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black26, blurRadius: 8),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    v.nombre,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 6),
+                  if (v.direccion != null)
+                    _infoRow(Icons.place_outlined, v.direccion!),
+                  if (v.telefono != null || v.correo != null)
+                    _infoRow(
+                      Icons.contact_phone_outlined,
+                      [
+                        if (v.telefono != null) v.telefono!,
+                        if (v.correo != null) v.correo!,
+                      ].join(' • '),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(entry);
+    _hoverEntries[v.id] = entry;
+  }
+
+  void _hideHoverInfoWeb(Vet v) {
+    _hoverEntries.remove(v.id)?.remove();
+  }
+
+  Widget _infoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: const Color(0xFF00796B)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
+        ],
       ),
     );
   }
