@@ -289,7 +289,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              AvatarPicker(currentUrl: avatarUrl, onPicked: _uploadAvatar),
+              AvatarPicker(
+                currentUrl: avatarUrl,
+                baseOrigin: widget.api.baseUrl, // 👈 nuevo
+                onPicked: _uploadAvatar,
+              ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
