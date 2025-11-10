@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+/* ===== Paleta Buscadog ===== */
+const kBuscadogBlue = Color(0xFF32BAEA);
+const kBuscadogYellow = Color(0xFFFBB03B);
+const kBuscadogPurple = Color(0xFF5642BB);
+const kBuscadogRed = Color(0xFFE53C49);
+
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -15,9 +21,10 @@ class HomePage extends StatelessWidget {
             children: [
               _HeroSection(isWide: isWide),
               _StepsAndStats(isWide: isWide),
-              _Testimonials(),
-              _Stories(),
-              _Footer(),
+              const _ServicesStrip(),
+              const _Testimonials(),
+              const _Stories(),
+              const _Footer(),
             ],
           ),
         );
@@ -33,33 +40,31 @@ class _HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const blue = Color(0xFF1EB6DC);
-    const purple = Color(0xFF4B3FD6);
+    final t = Theme.of(context).textTheme;
 
     final left = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Perdida no\nsignifica\nimposible.',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            fontSize: 42,
+        Text(
+          'Reencuentros\nque cambian vidas',
+          style: t.displaySmall?.copyWith(
             height: 1.05,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
           ),
         ),
-        const Text(
-          'Volvamos a encontrarnos.',
-          style: TextStyle(
-            color: purple,
-            fontWeight: FontWeight.w900,
-            fontSize: 36,
+        const SizedBox(height: 6),
+        Text(
+          'Protege a tu mejor amigo con Buscadog',
+          style: t.titleLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: kBuscadogYellow,
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Lanza una alerta inteligente y conecta con vecinos, rescatistas y familias dispuestas a ayudar.',
-          style: TextStyle(color: Colors.white, fontSize: 16),
+        Text(
+          'Lanza una alerta inteligente y activa a tu comunidad.\nMapas, veterinarias y hogares puente en un solo lugar.',
+          style: t.bodyLarge?.copyWith(color: Colors.white.withOpacity(.95)),
         ),
         const SizedBox(height: 20),
         Row(
@@ -70,37 +75,52 @@ class _HeroSection extends StatelessWidget {
                   hintText: 'Nombre de tu mascota…',
                   filled: true,
                   fillColor: Colors.white,
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 12,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,
                   ),
                 ),
               ),
             ),
             const SizedBox(width: 12),
-            FilledButton(
-              onPressed: () => _goSearch(context),
+            FilledButton.icon(
+              onPressed: () {
+                // si tienes helper: goToPage(context, 1);
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Ir al mapa…')));
+              },
               style: FilledButton.styleFrom(
-                backgroundColor: purple,
+                backgroundColor: kBuscadogPurple,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
+                  horizontal: 18,
                   vertical: 14,
                 ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
-              child: const Text('Buscar ahora'),
+              icon: const Icon(Icons.search_rounded),
+              label: const Text('Buscar ahora'),
             ),
           ],
         ),
         const SizedBox(height: 10),
-        const Opacity(
-          opacity: .9,
-          child: Text(
-            '✓ Más de 8,900 reencuentros logrados en México 🇲🇽',
-            style: TextStyle(color: Colors.white),
+        Opacity(
+          opacity: .95,
+          child: Row(
+            children: [
+              const Icon(Icons.verified_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 6),
+              Text(
+                '8,900+ reencuentros logrados',
+                style: t.bodyMedium?.copyWith(color: Colors.white),
+              ),
+            ],
           ),
         ),
       ],
@@ -110,26 +130,46 @@ class _HeroSection extends StatelessWidget {
       padding: EdgeInsets.only(top: isWide ? 0 : 24),
       child: Align(
         alignment: isWide ? Alignment.centerRight : Alignment.center,
-        child: Image.network(
-          'https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=600&q=80',
-          width: isWide ? 420 : 260,
-          fit: BoxFit.contain,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 28,
+                offset: const Offset(0, 18),
+                color: Colors.black.withOpacity(.18),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: Image.network(
+              'https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=600&q=80',
+              width: isWide ? 460 : 280,
+              fit: BoxFit.cover,
+            ),
+          ),
         ),
       ),
     );
 
     return Container(
-      color: blue,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [kBuscadogBlue, Color(0xFF22A7D6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
       padding: EdgeInsets.symmetric(
         horizontal: isWide ? 64 : 20,
-        vertical: isWide ? 40 : 24,
+        vertical: isWide ? 48 : 28,
       ),
       child: isWide
           ? Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(child: left),
-                const SizedBox(width: 24),
+                const SizedBox(width: 28),
                 right,
               ],
             )
@@ -148,36 +188,53 @@ class _StepsAndStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
     final left = ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       child: Image.network(
-        'https://images.unsplash.com/photo-1507149833265-60c372daea22?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1507149833265-60c372daea22?auto=format&fit=crop&w=900&q=80',
         height: isWide ? 420 : 260,
         fit: BoxFit.cover,
       ),
     );
 
+    final stepStyle = t.bodyLarge?.copyWith(fontWeight: FontWeight.w700);
     final right = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Tres pasos para un reencuentro rápido',
-          style: TextStyle(
-            color: Color(0xFF4B3FD6),
+          style: t.headlineSmall?.copyWith(
+            color: kBuscadogPurple,
             fontWeight: FontWeight.w800,
-            fontSize: 26,
           ),
         ),
-        const SizedBox(height: 10),
-        const Text(
-          'Creamos una alerta geolocalizada que se difunde en redes sociales y canales locales.',
-          style: TextStyle(fontSize: 16),
+        const SizedBox(height: 12),
+        _StepRow(
+          number: '1',
+          text: 'Crea la alerta con foto y última ubicación.',
+          style: stepStyle,
+        ),
+        _StepRow(
+          number: '2',
+          text: 'Activa el mapa y notifica a la comunidad.',
+          style: stepStyle,
+        ),
+        _StepRow(
+          number: '3',
+          text: 'Recibe reportes y guía de veterinarias cercanas.',
+          style: stepStyle,
         ),
         const SizedBox(height: 16),
-        FilledButton(
-          onPressed: () {},
-          style: FilledButton.styleFrom(backgroundColor: Color(0xFFE55555)),
-          child: const Text('Ver planes de rescate'),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: const [
+            _Pill(text: 'Geolocalización'),
+            _Pill(text: 'Difusión'),
+            _Pill(text: 'Colaboración'),
+          ],
         ),
         const SizedBox(height: 24),
         Wrap(
@@ -194,7 +251,7 @@ class _StepsAndStats extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: isWide ? 64 : 20,
-        vertical: isWide ? 40 : 24,
+        vertical: isWide ? 40 : 26,
       ),
       child: isWide
           ? Row(
@@ -213,9 +270,64 @@ class _StepsAndStats extends StatelessWidget {
   }
 }
 
+class _StepRow extends StatelessWidget {
+  final String number, text;
+  final TextStyle? style;
+  const _StepRow({required this.number, required this.text, this.style});
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: kBuscadogYellow.withOpacity(.25),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              number,
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                color: kBuscadogPurple,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: Text(text, style: style)),
+        ],
+      ),
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  final String text;
+  const _Pill({required this.text});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: kBuscadogBlue.withOpacity(.12),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: kBuscadogBlue,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
 class _Metric extends StatelessWidget {
-  final String value;
-  final String label;
+  final String value, label;
   const _Metric({required this.value, required this.label});
   @override
   Widget build(BuildContext context) {
@@ -225,9 +337,9 @@ class _Metric extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            fontSize: 32,
+            fontSize: 34,
             fontWeight: FontWeight.w900,
-            color: Color(0xFFF3A521),
+            color: kBuscadogYellow,
           ),
         ),
         const SizedBox(height: 2),
@@ -237,18 +349,96 @@ class _Metric extends StatelessWidget {
   }
 }
 
+/* ===================== SERVICIOS (tira) ===================== */
+class _ServicesStrip extends StatelessWidget {
+  const _ServicesStrip();
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return Container(
+      color: const Color(0xFFF6FBFF),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 16,
+        runSpacing: 12,
+        children: const [
+          _ServiceChip(
+            icon: Icons.local_hospital_rounded,
+            label: 'Veterinarias cercanas',
+          ),
+          _ServiceChip(
+            icon: Icons.storefront_rounded,
+            label: 'Tiendas de accesorios',
+          ),
+          _ServiceChip(icon: Icons.home_rounded, label: 'Hogares puente'),
+          _ServiceChip(icon: Icons.pets_rounded, label: 'Adopciones'),
+        ],
+      ),
+    );
+  }
+}
+
+class _ServiceChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _ServiceChip({required this.icon, required this.label});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 14,
+            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(.06),
+          ),
+        ],
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant.withOpacity(.6),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: kBuscadogPurple),
+          const SizedBox(width: 8),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+}
+
 /* ===================== TESTIMONIOS ===================== */
 class _Testimonials extends StatelessWidget {
+  const _Testimonials();
+
   @override
   Widget build(BuildContext context) {
     final items = const [
-      ('Javier Ortiz', 'Aguascalientes', '“Mi gato se escondió por días…”'),
-      ('David Romero', 'Hermosillo', '“Encontramos a nuestro perrito…”'),
-      ('Juan Carlos Pérez', 'Guadalajara', '“Gracias a la difusión…”'),
+      (
+        'Javier Ortiz',
+        'Aguascalientes',
+        '“Mi gato se escondió por días… y lo encontramos con Buscadog.”',
+      ),
+      (
+        'David Romero',
+        'Hermosillo',
+        '“La alerta geolocalizada ayudó en minutos.”',
+      ),
+      (
+        'Juan C. Pérez',
+        'Guadalajara',
+        '“La comunidad respondió de inmediato.”',
+      ),
     ];
 
     return Container(
-      color: const Color(0xFFF4EEDF),
+      color: const Color(0xFFF4F6FF),
       padding: const EdgeInsets.fromLTRB(24, 32, 24, 40),
       child: Center(
         child: Column(
@@ -257,12 +447,12 @@ class _Testimonials extends StatelessWidget {
               'No estás solo. Estas familias lo consiguieron.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Color(0xFF4B3FD6),
+                color: kBuscadogPurple,
                 fontWeight: FontWeight.w800,
                 fontSize: 22,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             Wrap(
               spacing: 20,
               runSpacing: 20,
@@ -271,11 +461,7 @@ class _Testimonials extends StatelessWidget {
                 for (final it in items)
                   SizedBox(
                     width: 340,
-                    child: Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
+                    child: _cardBase(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -284,7 +470,7 @@ class _Testimonials extends StatelessWidget {
                               it.$1,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF4B3FD6),
+                                color: kBuscadogPurple,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -314,21 +500,21 @@ class _Stories extends StatelessWidget {
     final stories = [
       (
         'El regreso de Linda con Luciana',
-        'https://images.unsplash.com/photo-1601758123927-196ba3c3f88e?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1601758123927-196ba3c3f88e?auto=format&fit=crop&w=900&q=80',
       ),
       (
         'Chimuelo y su gran amigo Hipo',
-        'https://images.unsplash.com/photo-1583511655626-9b2b0c75c8df?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1583511655626-9b2b0c75c8df?auto=format&fit=crop&w=900&q=80',
       ),
       (
         'Sam, el viajero inesperado',
-        'https://images.unsplash.com/photo-1557976609-9111c5e4b8df?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1557976609-9111c5e4b8df?auto=format&fit=crop&w=900&q=80',
       ),
     ];
 
     return Container(
-      color: const Color(0xFFE1F6FA),
-      padding: const EdgeInsets.fromLTRB(24, 36, 24, 40),
+      color: const Color(0xFFE9FAFF),
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 40),
       child: Column(
         children: [
           const Text(
@@ -339,18 +525,18 @@ class _Stories extends StatelessWidget {
               fontSize: 24,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           for (final s in stories)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: ExpansionTile(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 collapsedShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                collapsedBackgroundColor: const Color(0xFF1EB6DC),
+                collapsedBackgroundColor: kBuscadogBlue,
                 backgroundColor: Colors.white,
                 title: Text(
                   s.$1,
@@ -363,17 +549,19 @@ class _Stories extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(12),
-                    child: Column(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(s.$2, fit: BoxFit.cover),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Gracias a la red de Buscadog, lograron reencontrarse después de varios días.',
-                        ),
-                      ],
+                    child: _cardBase(
+                      child: Column(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(s.$2, fit: BoxFit.cover),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Gracias a la red Buscadog, volvieron a casa.',
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -387,15 +575,23 @@ class _Stories extends StatelessWidget {
 
 /* ===================== FOOTER ===================== */
 class _Footer extends StatelessWidget {
+  const _Footer();
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF1EB6DC),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [kBuscadogBlue, Color(0xFF22A7D6)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
       child: Column(
         children: const [
           Text(
-            'BuscaDog – Conectando corazones, rescatando vidas',
+            'Buscadog – Tecnología y comunidad al servicio de tu peludo',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white,
@@ -405,9 +601,9 @@ class _Footer extends StatelessWidget {
           ),
           SizedBox(height: 10),
           Opacity(
-            opacity: .9,
+            opacity: .95,
             child: Text(
-              '© 2025 BuscaDog. Todos los derechos reservados.',
+              '© 2025 Buscadog. Todos los derechos reservados.',
               style: TextStyle(color: Colors.white),
             ),
           ),
@@ -417,9 +613,21 @@ class _Footer extends StatelessWidget {
   }
 }
 
-/* ===================== Helper ===================== */
-void _goSearch(BuildContext context) {
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(const SnackBar(content: Text('Ir al mapa… (conecta tu tab)')));
+/* ===================== Util base ===================== */
+Widget _cardBase({required Widget child}) {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [
+        BoxShadow(
+          blurRadius: 18,
+          offset: const Offset(0, 10),
+          color: Colors.black.withOpacity(.06),
+        ),
+      ],
+      border: Border.all(color: const Color(0xFFCBD5E1).withOpacity(.6)),
+    ),
+    child: child,
+  );
 }
