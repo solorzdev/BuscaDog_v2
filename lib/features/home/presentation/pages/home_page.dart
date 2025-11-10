@@ -17,7 +17,6 @@ class HomePage extends StatelessWidget {
               _StepsAndStats(isWide: isWide),
               _Testimonials(),
               _Stories(),
-              _CtaBanner(),
               _Footer(),
             ],
           ),
@@ -380,44 +379,6 @@ class _Stories extends StatelessWidget {
                 ],
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-/* ===================== CTA MORADO ===================== */
-class _CtaBanner extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF4B3FD6),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-      child: Column(
-        children: [
-          const Text(
-            'Únete a nuestra red de búsqueda y reencuentros',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: 22,
-            ),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Explora casos en tiempo real y sé parte de una comunidad que ayuda.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          const SizedBox(height: 18),
-          FilledButton(
-            onPressed: () => _goSearch(context),
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFF3A521),
-            ),
-            child: const Text('Explorar mapa'),
-          ),
         ],
       ),
     );

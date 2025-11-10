@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'nav_item.dart';
 
@@ -15,49 +16,67 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final color = Theme.of(context).colorScheme;
 
     return SafeArea(
       minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: const [
-            BoxShadow(
-              blurRadius: 20,
-              offset: Offset(0, 12),
-              color: Color(0x1A000000),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10), // 👈 menos redondeado
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            decoration: BoxDecoration(
+              // Fondo sólido sin borde
+              color: color.surface.withOpacity(0.85),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: const [
+                BoxShadow(
+                  blurRadius: 18,
+                  offset: Offset(0, 10),
+                  color: Color(0x1A000000),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: NavigationBarTheme(
-          data: NavigationBarThemeData(
-            backgroundColor: Colors.transparent,
-            indicatorColor: scheme.secondaryContainer,
-            labelTextStyle: WidgetStateProperty.resolveWith((states) {
-              final selected = states.contains(WidgetState.selected);
-              return TextStyle(
-                fontSize: 12,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                color: selected ? scheme.primary : const Color(0xFF1B2A4A),
-              );
-            }),
-          ),
-          child: NavigationBar(
-            height: 64,
-            selectedIndex: currentIndex,
-            onDestinationSelected: onTap,
-            destinations: items
-                .map(
-                  (i) => NavigationDestination(
-                    icon: Icon(i.icon),
-                    selectedIcon: Icon(i.activeIcon ?? i.icon),
-                    label: i.label,
-                  ),
-                )
-                .toList(),
+            child: NavigationBarTheme(
+              data: NavigationBarThemeData(
+                height: 64,
+                backgroundColor: Colors.transparent,
+                indicatorColor: color.primary.withOpacity(0.10),
+                indicatorShape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ), // 👈 recto
+                labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                  final selected = states.contains(WidgetState.selected);
+                  return TextStyle(
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    color: selected ? color.onSurface : color.onSurfaceVariant,
+                  );
+                }),
+                iconTheme: WidgetStateProperty.resolveWith((states) {
+                  final selected = states.contains(WidgetState.selected);
+                  return IconThemeData(
+                    size: 24,
+                    color: selected ? color.primary : color.onSurfaceVariant,
+                  );
+                }),
+              ),
+              child: NavigationBar(
+                elevation: 0,
+                selectedIndex: currentIndex,
+                labelBehavior:
+                    NavigationDestinationLabelBehavior.onlyShowSelected,
+                destinations: [
+                  for (final item in items)
+                    NavigationDestination(
+                      icon: Icon(item.icon),
+                      selectedIcon: Icon(item.activeIcon),
+                      label: item.label,
+                    ),
+                ],
+                onDestinationSelected: onTap,
+              ),
+            ),
           ),
         ),
       ),
