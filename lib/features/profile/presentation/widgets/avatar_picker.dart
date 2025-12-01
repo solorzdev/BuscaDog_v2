@@ -73,7 +73,10 @@ class AvatarPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final url = _resolve(currentUrl);
+    final url = _resolve(currentUrl); // puede ser '' si no hay avatar
+    final ImageProvider<Object>? provider = url.isEmpty
+        ? null
+        : NetworkImage(url);
 
     return InkWell(
       onTap: () => _pick(context),
@@ -81,14 +84,21 @@ class AvatarPicker extends StatelessWidget {
       child: CircleAvatar(
         radius: size / 2,
         backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-        backgroundImage: url.isNotEmpty ? NetworkImage(url) : null,
-        child: url.isEmpty
+
+        // ✅ seguro: null si no hay imagen
+        foregroundImage: provider,
+
+        // ✅ solo setea el handler si hay provider
+        onForegroundImageError: provider == null
+            ? null
+            : (Object ex, StackTrace? st) {
+                debugPrint('Avatar load error: $ex');
+              },
+
+        // ✅ ícono placeholder cuando no hay imagen
+        child: provider == null
             ? Icon(Icons.person, size: size * 0.45, color: Colors.black45)
             : null,
-        onBackgroundImageError: (ex, st) {
-          // Log visual útil durante dev
-          debugPrint('Avatar load error: $ex');
-        },
       ),
     );
   }

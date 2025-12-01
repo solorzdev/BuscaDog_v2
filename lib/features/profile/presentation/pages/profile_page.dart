@@ -7,6 +7,8 @@ import '../../../../core/auth/auth_state.dart'; // <- tu estado de auth
 import '../../../profile/data/profile_api.dart';
 import 'profile_edit_page.dart';
 
+const String _apiBase = 'http://10.0.2.2:8080/api/v1';
+
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -22,7 +24,19 @@ class _ProfilePageState extends State<ProfilePage> {
   // Ajusta para dispositivo físico si lo usas:
   // - Emulador Android: 10.0.2.2
   // - Dispositivo físico en misma red: IP de tu PC, ej. 192.168.1.10
-  static const String _apiBase = 'http://10.0.2.2:8080/api/v1';
+  // static const String _apiBase = 'http://10.0.2.2:8080/api/v1';
+
+  String _normalizeAvatarUrl(String? raw) {
+    if (raw == null) return '';
+    final u = raw.trim();
+    if (u.isEmpty) return '';
+    if (u.startsWith('http://') || u.startsWith('https://'))
+      return u; // ya absoluta
+    const base = 'http://10.0.2.2:8080'; // solo si alguna vez viniera relativa
+    final b = base.endsWith('/') ? base.substring(0, base.length - 1) : base;
+    final p = u.startsWith('/') ? u : '/$u';
+    return '$b$p';
+  }
 
   @override
   void initState() {
@@ -37,7 +51,16 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() => loading = false);
       return;
     }
-    api = ProfileApi(Dio(), baseUrl: _apiBase, jwt: token);
+    // api = ProfileApi(Dio(), baseUrl: _apiBase, jwt: token);
+
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: _apiBase,
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+
+    api = ProfileApi(dio, baseUrl: _apiBase, jwt: token);
 
     // 2) Cargar perfil
     await _loadProfile();
@@ -129,6 +152,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     // ======= Con datos =======
+    final String avatar = (user?['avatar_url'] as String?)?.trim() ?? '';
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: _loadProfile,
@@ -137,23 +161,20 @@ class _ProfilePageState extends State<ProfilePage> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
+              // Antes del CircleAvatar:
               CircleAvatar(
                 radius: 55,
                 backgroundColor: Colors.grey.shade300,
-                backgroundImage:
-                    (user!['avatar_url'] != null &&
-                        (user!['avatar_url'] as String).isNotEmpty)
+                backgroundImage: avatar.isNotEmpty
                     ? CachedNetworkImageProvider(
-                        // si tu API devuelve /uploads/... monta con host base
-                        'http://10.0.2.2:8080${user!['avatar_url']}',
-                      )
+                        avatar,
+                      ) // URL absoluta del backend
                     : null,
-                child:
-                    (user!['avatar_url'] == null ||
-                        (user!['avatar_url'] as String).isEmpty)
+                child: avatar.isEmpty
                     ? const Icon(Icons.person, size: 60, color: Colors.white)
                     : null,
               ),
+
               const SizedBox(height: 12),
               Text(
                 user!['nombre_mostrar'] ?? 'Sin nombre',
