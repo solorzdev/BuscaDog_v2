@@ -8,8 +8,9 @@ import 'package:buscadog_v2/features/auth/presentation/login_page.dart';
 import 'package:buscadog_v2/core/navigation/nav_item.dart';
 import 'package:buscadog_v2/core/navigation/bottom_nav.dart';
 import 'package:buscadog_v2/core/navigation/end_drawer_menu.dart';
+import 'package:buscadog_v2/core/navigation/side_nav.dart';
 
-// Pages (placeholders actuales)
+// Pages
 import 'package:buscadog_v2/features/home/presentation/pages/home_page.dart';
 import 'package:buscadog_v2/features/search/presentation/pages/search_page.dart';
 import 'package:buscadog_v2/features/favorites/presentation/pages/favorites_page.dart';
@@ -31,12 +32,12 @@ class _MainScaffoldState extends State<MainScaffold> {
   late final List<Widget> _allPages = const [
     HomePage(), // 0
     SearchPage(), // 1
-    FavoritesPage(), // 2 (puede ser pública o privada a tu gusto)
+    FavoritesPage(), // 2
     NotificationsPage(), // 3
-    ProfilePage(), // 4 (RESTRINGIDA)
+    ProfilePage(), // 4
   ];
 
-  // Ítems del menú inferior/drawer (mismo orden que _allPages)
+  // Ítems del menú (mismo orden que _allPages)
   final List<NavItem> _allItems = const [
     NavItem(label: 'Inicio', icon: Icons.home_outlined, activeIcon: Icons.home),
     NavItem(
@@ -64,7 +65,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   /// Índices de _allPages/_allItems que requieren sesión
   final Set<int> _restricted = {
     4,
-  }; // Perfil (agrega {2,4} si quieres también favoritos privados)
+  }; // agrega 2 si quieres también favoritos privados
 
   @override
   Widget build(BuildContext context) {
@@ -73,18 +74,16 @@ class _MainScaffoldState extends State<MainScaffold> {
       builder: (context, _) {
         final isLogged = AuthState.I.isLogged;
 
-        // Determina qué índices mostrar según estado de sesión
+        // Determinar qué índices mostrar según login
         final visibleIdx = <int>[];
         for (var i = 0; i < _allItems.length; i++) {
           if (_restricted.contains(i) && !isLogged) continue;
           visibleIdx.add(i);
         }
 
-        // Mapea listas visibles
         final pages = [for (final i in visibleIdx) _allPages[i]];
         final items = [for (final i in visibleIdx) _allItems[i]];
 
-        // Ajusta índice si quedó fuera de rango por cambios de visibilidad
         if (_index >= pages.length) _index = 0;
 
         // Título dinámico
@@ -93,7 +92,7 @@ class _MainScaffoldState extends State<MainScaffold> {
             ? 'Hola, ${AuthState.I.user!.name ?? 'Usuario'}'
             : _allItems[visibleIdx[_index]].label;
 
-        // Handler de selección de pestaña con verificación de login
+        // Handler de selección con verificación de login
         Future<void> _selectTab(int tapped) async {
           final realIndex = visibleIdx[tapped];
           final needsLogin = _restricted.contains(realIndex) && !isLogged;
@@ -101,47 +100,93 @@ class _MainScaffoldState extends State<MainScaffold> {
             final ok = await Navigator.of(
               context,
             ).push<bool>(MaterialPageRoute(builder: (_) => const LoginPage()));
-            if (ok == true && mounted)
-              setState(() {}); // reconstruye con sesión
+            if (ok == true && mounted) setState(() {});
             return;
           }
           setState(() => _index = tapped);
         }
 
-        return Scaffold(
-          key: _scaffoldKey,
-          appBar: AppBar(
-            title: Text(title),
-            actions: [
-              IconButton(
-                tooltip: 'Ayuda',
-                icon: const Icon(Icons.help_outline),
-                onPressed: () {},
-              ),
-              IconButton(
-                tooltip: 'Menú',
-                icon: const Icon(Icons.menu),
-                onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-              ),
-            ],
-          ),
-          body: IndexedStack(index: _index, children: pages),
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final bool isDesktop = constraints.maxWidth >= 900;
 
-          // Barra inferior “pill”
-          bottomNavigationBar: AppBottomNav(
-            currentIndex: _index,
-            onTap: _selectTab,
-            items: items,
-          ),
+            if (isDesktop) {
+              // ✅ Versión WEB / escritorio:
+              // Menú lateral izquierdo + AppBar con ayuda y menú de cuenta (endDrawer)
+              return Scaffold(
+                key: _scaffoldKey,
+                appBar: AppBar(
+                  title: Text(title),
+                  actions: [
+                    IconButton(
+                      tooltip: 'Ayuda',
+                      icon: const Icon(Icons.help_outline),
+                      onPressed: () {},
+                    ),
+                    IconButton(
+                      tooltip: 'Menú',
+                      icon: const Icon(Icons.menu),
+                      onPressed: () =>
+                          _scaffoldKey.currentState?.openEndDrawer(),
+                    ),
+                  ],
+                ),
+                body: Row(
+                  children: [
+                    AppSideNav(
+                      currentIndex: _index,
+                      items: items,
+                      onTap: _selectTab,
+                    ),
+                    Expanded(
+                      child: IndexedStack(index: _index, children: pages),
+                    ),
+                  ],
+                ),
+                bottomNavigationBar: null,
+                endDrawer: AppEndDrawer(
+                  userName: AuthState.I.user?.name ?? 'Invitado',
+                  items: items,
+                  currentIndex: _index,
+                  onSelect: _selectTab,
+                ),
+                endDrawerEnableOpenDragGesture: false, // en web solo con botón
+              );
+            }
 
-          // Drawer derecho (oscuro)
-          endDrawer: AppEndDrawer(
-            userName: AuthState.I.user?.name ?? 'Invitado',
-            items: items,
-            currentIndex: _index,
-            onSelect: _selectTab,
-          ),
-          endDrawerEnableOpenDragGesture: true,
+            // ✅ Versión MÓVIL: se mantiene igual
+            return Scaffold(
+              key: _scaffoldKey,
+              appBar: AppBar(
+                title: Text(title),
+                actions: [
+                  IconButton(
+                    tooltip: 'Ayuda',
+                    icon: const Icon(Icons.help_outline),
+                    onPressed: () {},
+                  ),
+                  IconButton(
+                    tooltip: 'Menú',
+                    icon: const Icon(Icons.menu),
+                    onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+                  ),
+                ],
+              ),
+              body: IndexedStack(index: _index, children: pages),
+              bottomNavigationBar: AppBottomNav(
+                currentIndex: _index,
+                onTap: _selectTab,
+                items: items,
+              ),
+              endDrawer: AppEndDrawer(
+                userName: AuthState.I.user?.name ?? 'Invitado',
+                items: items,
+                currentIndex: _index,
+                onSelect: _selectTab,
+              ),
+              endDrawerEnableOpenDragGesture: true,
+            );
+          },
         );
       },
     );
